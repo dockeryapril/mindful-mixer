@@ -7,7 +7,7 @@ export default function App() {
 
   const playSound = async () => {
     const { sound } = await Audio.Sound.createAsync(
-      require('./assets/nature-sound.mp3')  // Place your sound file in the assets folder
+      require('./assets/rain.mp3')  // Place your sound file in the assets folder
     );
     setSound(sound);
     await sound.playAsync();
