@@ -3,17 +3,20 @@ import { Text, View, Button } from 'react-native';
 import { Audio } from 'expo-av';
 
 export default function App() {
-  console.log('Rendering App Component');  // Make sure App is rendering
   const [sound, setSound] = useState();
 
   const playSound = async () => {
-    console.log('Button pressed, trying to load sound...');  // Check if function is triggered
-    const { sound } = await Audio.Sound.createAsync(
-      require('./assets/rain.mp3')  // Make sure the file path is correct
-    );
-    setSound(sound);
-    console.log('Sound loaded, playing sound...');  // Check if sound is playing
-    await sound.playAsync();
+    console.log('Button pressed, trying to load sound...');
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('./assets/rain.mp3')  // Ensure the path is correct here
+      );
+      setSound(sound);
+      console.log('Sound loaded, playing sound...');
+      await sound.playAsync();
+    } catch (error) {
+      console.error('Error loading sound:', error);
+    }
   };
 
   return (
