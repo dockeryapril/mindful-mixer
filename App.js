@@ -16,7 +16,7 @@ export default function App() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Text>Welcome to Mindful Mixer! 🌿🎧</Text>
-      <Button title="Play Nature Sound" onPress={playSound} />
+      <Button title="Play Rain" onPress={playSound} />
     </View>
   );
 }
