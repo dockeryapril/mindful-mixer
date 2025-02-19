@@ -64,4 +64,28 @@ export default function App() {
 
       <Button
         title="Cancel Timer"
-        onPress
+        onPress={cancelTimer}  // Add the cancel timer function here
+      />
+
+      {/* Slider for sound volume */}
+      <Slider
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={1}
+        step={0.01}
+        value={1}
+        onValueChange={(value) => {
+          if (rainSound) {
+            rainSound.setVolumeAsync(value);  // Adjust volume dynamically
+          }
+        }}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItem
