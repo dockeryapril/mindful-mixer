@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, Button, Slider, StyleSheet, Platform } from 'react-native';
+import { View, Text, Button, StyleSheet, Platform } from 'react-native';
 import { Audio } from 'expo-av';
+import Slider from '@react-native-community/slider';
 
 export default function App() {
   const [rainSound, setRainSound] = useState(null);
