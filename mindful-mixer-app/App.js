@@ -28,4 +28,16 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#E6F7FF',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    fontWeight: '600',
+    color: '#005f73',
+  },
+});
