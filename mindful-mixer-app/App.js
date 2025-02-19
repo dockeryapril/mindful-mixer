@@ -1,11 +1,38 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+import { Audio } from 'expo-av';
 
 export default function App() {
+  const [rainSound, setRainSound] = useState(null);
+  const [oceanSound, setOceanSound] = useState(null);
+  const [birdsSound, setBirdsSound] = useState(null);
+
+  const toggleSound = async (soundState, setSound, file) => {
+    if (soundState) {
+      await soundState.stopAsync();
+      setSound(null);
+    } else {
+      const { sound } = await Audio.Sound.createAsync(file);
+      setSound(sound);
+      await sound.playAsync();
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <Text style={styles.title}>🎶 Mindful Mixer 🎛️</Text>
+      <Button
+        title={rainSound ? 'Stop Rain' : 'Play Rain'}
+        onPress={() => toggleSound(rainSound, setRainSound, require('./assets/rain.mp3'))}
+      />
+      <Button
+        title={oceanSound ? 'Stop Ocean' : 'Play Ocean'}
+        onPress={() => toggleSound(oceanSound, setOceanSound, require('./assets/ocean.mp3'))}
+      />
+      <Button
+        title={birdsSound ? 'Stop Birds' : 'Play Birds'}
+        onPress={() => toggleSound(birdsSound, setBirdsSound, require('./assets/birds.mp3'))}
+      />
     </View>
   );
 }
@@ -13,8 +40,14 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#E6F7FF',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    fontWeight: '600',
+    color: '#005f73',
   },
 });
