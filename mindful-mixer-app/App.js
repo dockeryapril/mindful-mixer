@@ -29,33 +29,4 @@ export default function App() {
     const timerID = setTimeout(() => {
       if (rainSound) rainSound.stopAsync();  // Stop the sound after the timer
       setRainSound(null);
-      setTimeRemaining(0);  // Reset time remaining
-    }, durationInSeconds * 1000);
-
-    setTimer(timerID);
-  };
-
-  const cancelTimer = () => {
-    if (timer) {
-      clearTimeout(timer);  // Clear the existing timer
-      setTimer(null);
-      setTimeRemaining(0);
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🎶 Mindful Mixer 🎛️</Text>
-
-      <Button
-        title={rainSound ? 'Stop Rain' : 'Play Rain'}
-        onPress={() => toggleSound(rainSound, setRainSound, require('./assets/rain.mp3'))}
-      />
-
-      {/* Timer controls */}
-      <Button
-        title="Start Timer (15 min)"
-        onPress={() => startTimer(15 * 60)}  // 15 minutes
-      />
-
-   
+      setTimeRemaining(0);  // Reset tim
