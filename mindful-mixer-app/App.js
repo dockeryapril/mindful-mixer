@@ -46,7 +46,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🎶 Mindful Mixer 🎛️</Text>
-
+    
       <Button
         title={rainSound ? 'Stop Rain' : 'Play Rain'}
         onPress={() => toggleSound(rainSound, setRainSound, require('./assets/rain.mp3'))}
