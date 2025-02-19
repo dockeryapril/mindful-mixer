@@ -57,4 +57,3 @@ export default function App() {
         title="Start Timer (15 min)"
         onPress={() => startTimer(15 * 60)}  // 15 minutes
       />
-
