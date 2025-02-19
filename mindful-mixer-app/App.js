@@ -21,4 +21,11 @@ export default function App() {
       <Text style={styles.title}>🎶 Mindful Mixer 🎛️</Text>
       <Button
         title={rainSound ? 'Stop Rain' : 'Play Rain'}
-        onPr
+        onPress={() => toggleSound(rainSound, setRainSound, require('./assets/rain.mp3'))}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container
