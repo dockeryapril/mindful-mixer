@@ -55,4 +55,7 @@ export default function App() {
       {/* Timer controls */}
       <Button
         title="Start Timer (15 min)"
-        onPress={() => startTimer(15 * 60)}  // 15 
+        onPress={() => startTimer(15 * 60)}  // 15 minutes
+      />
+
+   
