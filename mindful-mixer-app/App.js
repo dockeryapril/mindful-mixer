@@ -1,89 +1,149 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet, Platform } from 'react-native';
 import { Audio } from 'expo-av';
 import Slider from '@react-native-community/slider';
 
 export default function App() {
   const [rainSound, setRainSound] = useState(null);
+  const [rainSoundAlt, setRainSoundAlt] = useState(null);
   const [oceanSound, setOceanSound] = useState(null);
+  const [oceanSoundAlt, setOceanSoundAlt] = useState(null);
   const [birdsSound, setBirdsSound] = useState(null);
+  const [birdsSoundAlt, setBirdsSoundAlt] = useState(null);
   const [rainVolume, setRainVolume] = useState(1);
   const [oceanVolume, setOceanVolume] = useState(1);
   const [birdsVolume, setBirdsVolume] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [timer, setTimer] = useState(null);
+  const [timerActive, setTimerActive] = useState(false);
 
-  const playSound = async (file, setSound, volume) => {
-    const { sound } = await Audio.Sound.createAsync(file, { shouldPlay: true, isLooping: true, volume });
+  useEffect(() => {
+    let timer;
+    if (timerActive && timeRemaining > 0) {
+      timer = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            stopAllSounds();
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [timeRemaining, timerActive]);
+
+  const loadAndLoopSound = async (file, setSound, setAltSound, volume) => {
+    const { sound } = await Audio.Sound.createAsync(file);
+    await sound.setIsLoopingAsync(false);
+    await sound.setVolumeAsync(volume);
     setSound(sound);
+    sound.setOnPlaybackStatusUpdate(async (status) => {
+      if (status.didJustFinish) {
+        if (setAltSound) {
+          await sound.stopAsync();
+          const { sound: newSound } = await Audio.Sound.createAsync(file);
+          await newSound.setVolumeAsync(volume);
+          await newSound.playAsync();
+          setAltSound(newSound);
+        }
+      }
+    });
     await sound.playAsync();
   };
 
-  const toggleSound = async (soundState, setSound, file, volume) => {
+  const toggleSound = async (soundState, setSound, setAltSound, file, volume) => {
     if (soundState) {
       await soundState.stopAsync();
-      await soundState.unloadAsync();
       setSound(null);
+      if (setAltSound) setAltSound(null);
     } else {
-      playSound(file, setSound, volume);
+      loadAndLoopSound(file, setSound, setAltSound, volume);
     }
   };
 
-  const handleVolumeChange = async (sound, volume, setVolume) => {
-    setVolume(volume);
-    if (sound) await sound.setVolumeAsync(volume);
+  const handleVolumeChange = async (sound, volume) => {
+    if (sound) {
+      await sound.setVolumeAsync(volume);
+    }
   };
 
   const startTimer = (seconds) => {
     setTimeRemaining(seconds);
-    if (timer) clearInterval(timer);
-    const newTimer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(newTimer);
-          stopAllSounds();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    setTimer(newTimer);
+    setTimerActive(true);
   };
 
   const stopAllSounds = async () => {
     if (rainSound) await rainSound.stopAsync();
+    if (rainSoundAlt) await rainSoundAlt.stopAsync();
     if (oceanSound) await oceanSound.stopAsync();
+    if (oceanSoundAlt) await oceanSoundAlt.stopAsync();
     if (birdsSound) await birdsSound.stopAsync();
+    if (birdsSoundAlt) await birdsSoundAlt.stopAsync();
     setRainSound(null);
+    setRainSoundAlt(null);
     setOceanSound(null);
+    setOceanSoundAlt(null);
     setBirdsSound(null);
+    setBirdsSoundAlt(null);
     setTimeRemaining(0);
+    setTimerActive(false);
   };
-
-  useEffect(() => {
-    return () => {
-      if (rainSound) rainSound.unloadAsync();
-      if (oceanSound) oceanSound.unloadAsync();
-      if (birdsSound) birdsSound.unloadAsync();
-    };
-  }, []);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🎶 Mindful Mixer 🎛️</Text>
-
-      <Button title={rainSound ? 'Stop Rain' : 'Play Rain'} onPress={() => toggleSound(rainSound, setRainSound, require('./assets/rain.mp3'), rainVolume)} />
-      <Slider style={styles.slider} minimumValue={0} maximumValue={1} value={rainVolume} onValueChange={(value) => handleVolumeChange(rainSound, value, setRainVolume)} />
-
-      <Button title={oceanSound ? 'Stop Ocean' : 'Play Ocean'} onPress={() => toggleSound(oceanSound, setOceanSound, require('./assets/ocean.mp3'), oceanVolume)} />
-      <Slider style={styles.slider} minimumValue={0} maximumValue={1} value={oceanVolume} onValueChange={(value) => handleVolumeChange(oceanSound, value, setOceanVolume)} />
-
-      <Button title={birdsSound ? 'Stop Birds' : 'Play Birds'} onPress={() => toggleSound(birdsSound, setBirdsSound, require('./assets/birds.mp3'), birdsVolume)} />
-      <Slider style={styles.slider} minimumValue={0} maximumValue={1} value={birdsVolume} onValueChange={(value) => handleVolumeChange(birdsSound, value, setBirdsVolume)} />
+      
+      <Button
+        title={rainSound ? 'Pause Rain' : 'Play Rain'}
+        onPress={() => toggleSound(rainSound, setRainSound, setRainSoundAlt, require('./assets/rain.mp3'), rainVolume)}
+      />
+      <Slider
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={1}
+        value={rainVolume}
+        onValueChange={value => {
+          setRainVolume(value);
+          handleVolumeChange(rainSound, value);
+        }}
+      />
+      
+      <Button
+        title={oceanSound ? 'Pause Ocean' : 'Play Ocean'}
+        onPress={() => toggleSound(oceanSound, setOceanSound, setOceanSoundAlt, require('./assets/ocean.mp3'), oceanVolume)}
+      />
+      <Slider
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={1}
+        value={oceanVolume}
+        onValueChange={value => {
+          setOceanVolume(value);
+          handleVolumeChange(oceanSound, value);
+        }}
+      />
+      
+      <Button
+        title={birdsSound ? 'Pause Birds' : 'Play Birds'}
+        onPress={() => toggleSound(birdsSound, setBirdsSound, setBirdsSoundAlt, require('./assets/birds.mp3'), birdsVolume)}
+      />
+      <Slider
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={1}
+        value={birdsVolume}
+        onValueChange={value => {
+          setBirdsVolume(value);
+          handleVolumeChange(birdsSound, value);
+        }}
+      />
 
       <Button title="Start Timer (15 min)" onPress={() => startTimer(15 * 60)} />
-      {timeRemaining > 0 && <Text style={styles.timerText}>Time Remaining: {Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</Text>}
-      <Button title="Stop Sounds" onPress={stopAllSounds} />
+      {timeRemaining > 0 && (
+        <Text>Time Remaining: {Math.floor(timeRemaining / 60)}:{timeRemaining % 60}</Text>
+      )}
+      <Button title="Cancel Timer" onPress={stopAllSounds} />
     </View>
   );
 }
@@ -94,21 +154,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#E6F7FF',
-    padding: 20,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
     marginBottom: 20,
+    fontWeight: '600',
     color: '#005f73',
   },
   slider: {
     width: 300,
     marginBottom: 20,
   },
-  timerText: {
-    fontSize: 18,
-    color: '#d62828',
-    marginVertical: 10,
+  volumeLabel: {
+    fontSize: 16,
+    color: '#005f73',
   },
 });
