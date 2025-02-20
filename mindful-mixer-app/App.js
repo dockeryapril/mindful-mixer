@@ -8,7 +8,7 @@ export default function App() {
   const [rainSoundAlt, setRainSoundAlt] = useState(null);
   const [rainVolume, setRainVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const fadeDuration = 2000; // 2 seconds for smoother transition
+  const fadeDuration = 1000; // 1 second for smoother transition
 
   useEffect(() => {
     return () => {
