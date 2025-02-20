@@ -8,7 +8,6 @@ export default function App() {
   const [rainSoundAlt, setRainSoundAlt] = useState(null);
   const [rainVolume, setRainVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const fadeDuration = 1000; // 1 second for smoother transition
 
   useEffect(() => {
     return () => {
@@ -33,8 +32,8 @@ export default function App() {
     setRainSoundAlt(sound2);
     setIsPlaying(true);
 
-    await sound1.setVolumeAsync(rainVolume);
-    await sound2.setVolumeAsync(0);
+    sound1.setVolumeAsync(rainVolume);
+    sound2.setVolumeAsync(0);
 
     await sound1.playAsync();
     scheduleCrossfade(sound1, sound2);
@@ -42,23 +41,20 @@ export default function App() {
 
   const scheduleCrossfade = (sound1, sound2) => {
     sound1.setOnPlaybackStatusUpdate(async (status) => {
-      if (status.didJustFinish) {
-        await sound2.replayAsync();
+      if (status.positionMillis >= status.durationMillis - 4000) { // Start crossfade 4 sec before end
         smoothCrossfade(sound1, sound2);
       }
     });
   };
 
   const smoothCrossfade = async (fadeOutSound, fadeInSound) => {
-    let steps = 20;
-    let interval = fadeDuration / steps;
-
-    for (let i = 0; i <= steps; i++) {
-      let fadeOutVolume = ((steps - i) / steps) * rainVolume;
-      let fadeInVolume = (i / steps) * rainVolume;
+    await fadeInSound.replayAsync(); // Start new sound before fade begins
+    for (let i = 0; i <= 20; i++) {
+      let fadeOutVolume = ((20 - i) / 20) * rainVolume;
+      let fadeInVolume = (i / 20) * rainVolume;
       await fadeOutSound.setVolumeAsync(fadeOutVolume);
       await fadeInSound.setVolumeAsync(fadeInVolume);
-      await new Promise((resolve) => setTimeout(resolve, interval));
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Faster transition
     }
     scheduleCrossfade(fadeInSound, fadeOutSound);
   };
