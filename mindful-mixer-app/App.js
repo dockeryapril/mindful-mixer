@@ -31,89 +31,81 @@ export default function App() {
   }, [rainSound, rainSoundAlt, oceanSound, oceanSoundAlt, birdsSound, birdsSoundAlt]);
 
   const playWithCrossfade = async (soundType) => {
+    let sound1, sound2;
     switch (soundType) {
       case 'rain':
         if (isRainPlaying) {
-          // Stop both sounds
           if (rainSound) await rainSound.stopAsync();
           if (rainSoundAlt) await rainSoundAlt.stopAsync();
           setIsRainPlaying(false);
         } else {
-          // Start playing both sounds
-          const { sound: sound1 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
-          const { sound: sound2 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
-          setRainSound(sound1);
-          setRainSoundAlt(sound2);
+          const { sound: s1 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
+          const { sound: s2 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
+          setRainSound(s1);
+          setRainSoundAlt(s2);
           setIsRainPlaying(true);
+          sound1 = s1;
+          sound2 = s2;
           await sound1.setVolumeAsync(rainVolume);
           await sound2.setVolumeAsync(0);
           await sound1.playAsync();
-          setTimeout(() => {
-            scheduleCrossfade(sound1, sound2);
-          }, sound1._durationMillis - 5000); // Start crossfade 5 seconds before end
+          setTimeout(() => scheduleCrossfade(sound1, sound2, 'rain'), sound1._durationMillis - 5000);
         }
         break;
 
       case 'ocean':
         if (isOceanPlaying) {
-          // Stop both sounds
           if (oceanSound) await oceanSound.stopAsync();
           if (oceanSoundAlt) await oceanSoundAlt.stopAsync();
           setIsOceanPlaying(false);
         } else {
-          // Start playing both sounds
-          const { sound: sound1 } = await Audio.Sound.createAsync(require('./assets/ocean.mp3'));
-          const { sound: sound2 } = await Audio.Sound.createAsync(require('./assets/ocean.mp3'));
-          setOceanSound(sound1);
-          setOceanSoundAlt(sound2);
+          const { sound: s1 } = await Audio.Sound.createAsync(require('./assets/ocean.mp3'));
+          const { sound: s2 } = await Audio.Sound.createAsync(require('./assets/ocean.mp3'));
+          setOceanSound(s1);
+          setOceanSoundAlt(s2);
           setIsOceanPlaying(true);
+          sound1 = s1;
+          sound2 = s2;
           await sound1.setVolumeAsync(oceanVolume);
           await sound2.setVolumeAsync(0);
           await sound1.playAsync();
-          setTimeout(() => {
-            scheduleCrossfade(sound1, sound2);
-          }, sound1._durationMillis - 5000); // Start crossfade 5 seconds before end
+          setTimeout(() => scheduleCrossfade(sound1, sound2, 'ocean'), sound1._durationMillis - 5000);
         }
         break;
 
       case 'birds':
         if (isBirdsPlaying) {
-          // Stop both sounds
           if (birdsSound) await birdsSound.stopAsync();
           if (birdsSoundAlt) await birdsSoundAlt.stopAsync();
           setIsBirdsPlaying(false);
         } else {
-          // Start playing both sounds
-          const { sound: sound1 } = await Audio.Sound.createAsync(require('./assets/birds.mp3'));
-          const { sound: sound2 } = await Audio.Sound.createAsync(require('./assets/birds.mp3'));
-          setBirdsSound(sound1);
-          setBirdsSoundAlt(sound2);
+          const { sound: s1 } = await Audio.Sound.createAsync(require('./assets/birds.mp3'));
+          const { sound: s2 } = await Audio.Sound.createAsync(require('./assets/birds.mp3'));
+          setBirdsSound(s1);
+          setBirdsSoundAlt(s2);
           setIsBirdsPlaying(true);
+          sound1 = s1;
+          sound2 = s2;
           await sound1.setVolumeAsync(birdsVolume);
           await sound2.setVolumeAsync(0);
           await sound1.playAsync();
-          setTimeout(() => {
-            scheduleCrossfade(sound1, sound2);
-          }, sound1._durationMillis - 5000); // Start crossfade 5 seconds before end
+          setTimeout(() => scheduleCrossfade(sound1, sound2, 'birds'), sound1._durationMillis - 5000);
         }
-        break;
-
-      default:
         break;
     }
   };
 
-  const scheduleCrossfade = async (sound1, sound2) => {
+  const scheduleCrossfade = async (sound1, sound2, soundType) => {
     await sound2.playAsync();
     for (let i = 0; i <= 30; i++) {
-      let fadeOutVolume = ((30 - i) / 30) * (sound1 === rainSound ? rainVolume : sound1 === oceanSound ? oceanVolume : birdsVolume);
-      let fadeInVolume = (i / 30) * (sound2 === rainSoundAlt ? rainVolume : sound2 === oceanSoundAlt ? oceanVolume : birdsVolume);
+      const fadeOutVolume = ((30 - i) / 30) * (soundType === 'rain' ? rainVolume : soundType === 'ocean' ? oceanVolume : birdsVolume);
+      const fadeInVolume = (i / 30) * (soundType === 'rain' ? rainVolume : soundType === 'ocean' ? oceanVolume : birdsVolume);
       await sound1.setVolumeAsync(fadeOutVolume);
       await sound2.setVolumeAsync(fadeInVolume);
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, 150));
     }
     await sound1.stopAsync();
-    scheduleCrossfade(sound2, sound1);
+    scheduleCrossfade(sound2, sound1, soundType);
   };
 
   return (
@@ -135,58 +127,4 @@ export default function App() {
       />
       <Text style={styles.volumeLabel}>Rain Volume: {Math.round(rainVolume * 100)}%</Text>
 
-      {/* Ocean Sound Controls */}
-      <Button title={isOceanPlaying ? 'Stop Ocean' : 'Play Ocean'} onPress={() => playWithCrossfade('ocean')} />
-      <Slider
-        style={styles.slider}
-        minimumValue={0}
-        maximumValue={1}
-        value={oceanVolume}
-        onValueChange={async (value) => {
-          setOceanVolume(value);
-          if (oceanSound) await oceanSound.setVolumeAsync(value);
-          if (oceanSoundAlt) await oceanSoundAlt.setVolumeAsync(value);
-        }}
-      />
-      <Text style={styles.volumeLabel}>Ocean Volume: {Math.round(oceanVolume * 100)}%</Text>
-
-      {/* Birds Sound Controls */}
-      <Button title={isBirdsPlaying ? 'Stop Birds' : 'Play Birds'} onPress={() => playWithCrossfade('birds')} />
-      <Slider
-        style={styles.slider}
-        minimumValue={0}
-        maximumValue={1}
-        value={birdsVolume}
-        onValueChange={async (value) => {
-          setBirdsVolume(value);
-          if (birdsSound) await birdsSound.setVolumeAsync(value);
-          if (birdsSoundAlt) await birdsSoundAlt.setVolumeAsync(value);
-        }}
-      />
-      <Text style={styles.volumeLabel}>Birds Volume: {Math.round(birdsVolume * 100)}%</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#E6F7FF',
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: '600',
-    color: '#005f73',
-  },
-  slider: {
-    width: 300,
-    marginBottom: 20,
-  },
-  volumeLabel: {
-    fontSize: 16,
-    color: '#005f73',
-  },
-});
+      {/* Ocean Sound Controls *
