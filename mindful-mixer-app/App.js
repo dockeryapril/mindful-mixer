@@ -5,98 +5,55 @@ import Slider from '@react-native-community/slider';
 
 export default function App() {
   const [rainSound, setRainSound] = useState(null);
-  const [rainSoundAlt, setRainSoundAlt] = useState(null);
+  const [oceanSound, setOceanSound] = useState(null);
+  const [birdsSound, setBirdsSound] = useState(null);
+
   const [rainVolume, setRainVolume] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [oceanVolume, setOceanVolume] = useState(1);
+  const [birdsVolume, setBirdsVolume] = useState(1);
+
+  const [rainIsPlaying, setRainIsPlaying] = useState(false);
+  const [oceanIsPlaying, setOceanIsPlaying] = useState(false);
+  const [birdsIsPlaying, setBirdsIsPlaying] = useState(false);
 
   useEffect(() => {
     return () => {
       if (rainSound) rainSound.unloadAsync();
-      if (rainSoundAlt) rainSoundAlt.unloadAsync();
+      if (oceanSound) oceanSound.unloadAsync();
+      if (birdsSound) birdsSound.unloadAsync();
     };
-  }, [rainSound, rainSoundAlt]);
+  }, [rainSound, oceanSound, birdsSound]);
 
-  const playWithCrossfade = async () => {
-    if (isPlaying) {
-      if (rainSound) await rainSound.stopAsync();
-      if (rainSoundAlt) await rainSoundAlt.stopAsync();
-      setRainSound(null);
-      setRainSoundAlt(null);
-      setIsPlaying(false);
-      return;
-    }
-
-    const { sound: sound1 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
-    const { sound: sound2 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
-    setRainSound(sound1);
-    setRainSoundAlt(sound2);
-    setIsPlaying(true);
-
-    sound1.setVolumeAsync(rainVolume);
-    sound2.setVolumeAsync(0);
-
-    await sound1.playAsync();
-    setTimeout(() => {
-      scheduleCrossfade(sound1, sound2);
-    }, sound1._durationMillis - 5000); // Start crossfade 5 seconds before end
-  };
-
-  const scheduleCrossfade = async (sound1, sound2) => {
-    await sound2.playAsync();
-    for (let i = 0; i <= 30; i++) {
-      let fadeOutVolume = ((30 - i) / 30) * rainVolume;
-      let fadeInVolume = (i / 30) * rainVolume;
-      await sound1.setVolumeAsync(fadeOutVolume);
-      await sound2.setVolumeAsync(fadeInVolume);
-      await new Promise((resolve) => setTimeout(resolve, 150));
-    }
-    await sound1.stopAsync();
-    scheduleCrossfade(sound2, sound1);
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🎶 Mindful Mixer 🎛️</Text>
-      <Button
-        title={isPlaying ? 'Stop Rain' : 'Play Rain'}
-        onPress={playWithCrossfade}
-      />
-      <Slider
-        style={styles.slider}
-        minimumValue={0}
-        maximumValue={1}
-        value={rainVolume}
-        onValueChange={async (value) => {
-          setRainVolume(value);
-          if (rainSound) await rainSound.setVolumeAsync(value);
-          if (rainSoundAlt) await rainSoundAlt.setVolumeAsync(value);
-        }}
-      />
-      <Text style={styles.volumeLabel}>Rain Volume: {Math.round(rainVolume * 100)}%</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#E6F7FF',
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: '600',
-    color: '#005f73',
-  },
-  slider: {
-    width: 300,
-    marginBottom: 20,
-  },
-  volumeLabel: {
-    fontSize: 16,
-    color: '#005f73',
-  },
-});
-
+  const playSound = async (soundType) => {
+    switch (soundType) {
+      case 'rain':
+        if (rainIsPlaying) {
+          await rainSound.stopAsync();
+          setRainIsPlaying(false);
+        } else {
+          const { sound } = await Audio.Sound.createAsync(require('./assets/rain.mp3'), {
+            shouldPlay: true,
+            isLooping: true,
+          });
+          setRainSound(sound);
+          await sound.setVolumeAsync(rainVolume);
+          setRainIsPlaying(true);
+        }
+        break;
+      case 'ocean':
+        if (oceanIsPlaying) {
+          await oceanSound.stopAsync();
+          setOceanIsPlaying(false);
+        } else {
+          const { sound } = await Audio.Sound.createAsync(require('./assets/ocean.mp3'), {
+            shouldPlay: true,
+            isLooping: true,
+          });
+          setOceanSound(sound);
+          await sound.setVolumeAsync(oceanVolume);
+          setOceanIsPlaying(true);
+        }
+        break;
+      case 'birds':
+        if (birdsIsPlaying) {
+          await birdsSound.stopAsync();
