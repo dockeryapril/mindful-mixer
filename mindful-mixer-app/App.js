@@ -34,10 +34,12 @@ export default function App() {
     switch (soundType) {
       case 'rain':
         if (isRainPlaying) {
+          // Stop both sounds
           if (rainSound) await rainSound.stopAsync();
           if (rainSoundAlt) await rainSoundAlt.stopAsync();
           setIsRainPlaying(false);
         } else {
+          // Start playing both sounds
           const { sound: sound1 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
           const { sound: sound2 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
           setRainSound(sound1);
@@ -54,10 +56,12 @@ export default function App() {
 
       case 'ocean':
         if (isOceanPlaying) {
+          // Stop both sounds
           if (oceanSound) await oceanSound.stopAsync();
           if (oceanSoundAlt) await oceanSoundAlt.stopAsync();
           setIsOceanPlaying(false);
         } else {
+          // Start playing both sounds
           const { sound: sound1 } = await Audio.Sound.createAsync(require('./assets/ocean.mp3'));
           const { sound: sound2 } = await Audio.Sound.createAsync(require('./assets/ocean.mp3'));
           setOceanSound(sound1);
@@ -68,16 +72,18 @@ export default function App() {
           await sound1.playAsync();
           setTimeout(() => {
             scheduleCrossfade(sound1, sound2);
-          }, sound1._durationMillis - 5000);
+          }, sound1._durationMillis - 5000); // Start crossfade 5 seconds before end
         }
         break;
 
       case 'birds':
         if (isBirdsPlaying) {
+          // Stop both sounds
           if (birdsSound) await birdsSound.stopAsync();
           if (birdsSoundAlt) await birdsSoundAlt.stopAsync();
           setIsBirdsPlaying(false);
         } else {
+          // Start playing both sounds
           const { sound: sound1 } = await Audio.Sound.createAsync(require('./assets/birds.mp3'));
           const { sound: sound2 } = await Audio.Sound.createAsync(require('./assets/birds.mp3'));
           setBirdsSound(sound1);
@@ -88,7 +94,7 @@ export default function App() {
           await sound1.playAsync();
           setTimeout(() => {
             scheduleCrossfade(sound1, sound2);
-          }, sound1._durationMillis - 5000);
+          }, sound1._durationMillis - 5000); // Start crossfade 5 seconds before end
         }
         break;
 
