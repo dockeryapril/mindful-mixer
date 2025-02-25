@@ -58,7 +58,7 @@ export default function App() {
     <View style={styles.container}>
       <Text style={styles.title}>🎶 Mindful Mixer 🎛️</Text>
       <Button
-        title={isPlaying ? 'Stop Rain' : 'Play Rain'}
+        title={isPlaying ? 'Stop Rain' : 'Play Rain with Crossfade'}
         onPress={playWithCrossfade}
       />
       <Slider
