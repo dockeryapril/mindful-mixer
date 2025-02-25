@@ -5,62 +5,83 @@ import Slider from '@react-native-community/slider';
 
 export default function App() {
   const [rainSound, setRainSound] = useState(null);
-  const [rainSoundAlt, setRainSoundAlt] = useState(null);
+  const [oceanSound, setOceanSound] = useState(null);
+  const [birdsSound, setBirdsSound] = useState(null);
   const [rainVolume, setRainVolume] = useState(1);
+  const [oceanVolume, setOceanVolume] = useState(1);
+  const [birdsVolume, setBirdsVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     return () => {
       if (rainSound) rainSound.unloadAsync();
-      if (rainSoundAlt) rainSoundAlt.unloadAsync();
+      if (oceanSound) oceanSound.unloadAsync();
+      if (birdsSound) birdsSound.unloadAsync();
     };
-  }, [rainSound, rainSoundAlt]);
+  }, [rainSound, oceanSound, birdsSound]);
 
   const playWithCrossfade = async () => {
     if (isPlaying) {
       if (rainSound) await rainSound.stopAsync();
-      if (rainSoundAlt) await rainSoundAlt.stopAsync();
+      if (oceanSound) await oceanSound.stopAsync();
+      if (birdsSound) await birdsSound.stopAsync();
       setRainSound(null);
-      setRainSoundAlt(null);
+      setOceanSound(null);
+      setBirdsSound(null);
       setIsPlaying(false);
       return;
     }
 
-    const { sound: sound1 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
-    const { sound: sound2 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
-    setRainSound(sound1);
-    setRainSoundAlt(sound2);
+    const { sound: rain1 } = await Audio.Sound.createAsync(require('./assets/rain.mp3'));
+    const { sound: ocean1 } = await Audio.Sound.createAsync(require('./assets/ocean.mp3'));
+    const { sound: birds1 } = await Audio.Sound.createAsync(require('./assets/birds.mp3'));
+
+    setRainSound(rain1);
+    setOceanSound(ocean1);
+    setBirdsSound(birds1);
     setIsPlaying(true);
 
-    sound1.setVolumeAsync(rainVolume);
-    sound2.setVolumeAsync(0);
+    rain1.setVolumeAsync(rainVolume);
+    ocean1.setVolumeAsync(oceanVolume);
+    birds1.setVolumeAsync(birdsVolume);
 
-    await sound1.playAsync();
+    await rain1.playAsync();
+    await ocean1.playAsync();
+    await birds1.playAsync();
+
+    // Start crossfade based on each track's duration
     setTimeout(() => {
-      scheduleCrossfade(sound1, sound2);
-    }, sound1._durationMillis - 5000); // Start crossfade 5 seconds before end
+      scheduleCrossfade(rain1, ocean1, birds1);
+    }, Math.min(rain1._durationMillis, ocean1._durationMillis, birds1._durationMillis) - 5000); // Adjust crossfade timing
   };
 
-  const scheduleCrossfade = async (sound1, sound2) => {
-    await sound2.playAsync();
-    for (let i = 0; i <= 30; i++) {
-      let fadeOutVolume = ((30 - i) / 30) * rainVolume;
-      let fadeInVolume = (i / 30) * rainVolume;
-      await sound1.setVolumeAsync(fadeOutVolume);
-      await sound2.setVolumeAsync(fadeInVolume);
-      await new Promise((resolve) => setTimeout(resolve, 150));
+  const scheduleCrossfade = async (rainSound, oceanSound, birdsSound) => {
+    // Adjust crossfade volume levels for all sounds
+    const sounds = [rainSound, oceanSound, birdsSound];
+    for (let i = 0; i < sounds.length; i++) {
+      let sound = sounds[i];
+      let volume = i === 0 ? rainVolume : i === 1 ? oceanVolume : birdsVolume;
+      await sound.playAsync();
+
+      for (let j = 0; j <= 30; j++) {
+        let fadeOutVolume = ((30 - j) / 30) * volume;
+        let fadeInVolume = (j / 30) * volume;
+        await rainSound.setVolumeAsync(fadeOutVolume);
+        await oceanSound.setVolumeAsync(fadeInVolume);
+        await new Promise((resolve) => setTimeout(resolve, 150));  // Wait for 150ms between volume changes
+      }
     }
-    await sound1.stopAsync();
-    scheduleCrossfade(sound2, sound1);
+    scheduleCrossfade(rainSound, oceanSound, birdsSound);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🎶 Mindful Mixer 🎛️</Text>
       <Button
-        title={isPlaying ? 'Stop Rain' : 'Play Rain'}
+        title={isPlaying ? 'Stop All Sounds' : 'Play Sounds'}
         onPress={playWithCrossfade}
       />
+      <Text style={styles.volumeLabel}>Rain Volume: {Math.round(rainVolume * 100)}%</Text>
       <Slider
         style={styles.slider}
         minimumValue={0}
@@ -69,10 +90,30 @@ export default function App() {
         onValueChange={async (value) => {
           setRainVolume(value);
           if (rainSound) await rainSound.setVolumeAsync(value);
-          if (rainSoundAlt) await rainSoundAlt.setVolumeAsync(value);
         }}
       />
-      <Text style={styles.volumeLabel}>Rain Volume: {Math.round(rainVolume * 100)}%</Text>
+      <Text style={styles.volumeLabel}>Ocean Volume: {Math.round(oceanVolume * 100)}%</Text>
+      <Slider
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={1}
+        value={oceanVolume}
+        onValueChange={async (value) => {
+          setOceanVolume(value);
+          if (oceanSound) await oceanSound.setVolumeAsync(value);
+        }}
+      />
+      <Text style={styles.volumeLabel}>Birds Volume: {Math.round(birdsVolume * 100)}%</Text>
+      <Slider
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={1}
+        value={birdsVolume}
+        onValueChange={async (value) => {
+          setBirdsVolume(value);
+          if (birdsSound) await birdsSound.setVolumeAsync(value);
+        }}
+      />
     </View>
   );
 }
@@ -99,4 +140,3 @@ const styles = StyleSheet.create({
     color: '#005f73',
   },
 });
-
