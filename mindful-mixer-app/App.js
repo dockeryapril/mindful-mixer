@@ -31,4 +31,8 @@ export default function App() {
   }, [rainSound, rainSoundAlt, oceanSound, oceanSoundAlt, birdsSound, birdsSoundAlt]);
 
   const playWithCrossfade = async (soundType) => {
-    switch (soundType)
+    switch (soundType) {
+      case 'rain':
+        if (isRainPlaying) {
+          if (rainSound) await rainSound.stopAsync();
+          if (rainSoundAlt) await rainSoundAlt.st
